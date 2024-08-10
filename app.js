@@ -9,12 +9,19 @@ app.use(express.json());
 app.use(cors());
 app.use("/books", router); // localhost:5000/books
 
-mongoose
-  .connect(
-    "mongodb+srv://admin:DDoNj1ys9iGy0nS3@cluster.ttw1d.mongodb.net/?retryWrites=true&w=majority&appName=Cluster"
-  )
-  .then(() => console.log("Connected To Database"))
-  .then(() => {
-    app.listen(5000);
-  })
-  .catch((err) => console.log(err));
+const startServer = async () => {
+  try {
+    await mongoose.connect(
+      "mongodb+srv://admin:DDoNj1ys9iGy0nS3@cluster.ttw1d.mongodb.net/?retryWrites=true&w=majority&appName=Cluster"
+    );
+    console.log("Connected To Database");
+
+    app.listen(5000, () => {
+      console.log("Server is running on port 5000");
+    });
+  } catch (err) {
+    console.error("Failed to connect to the database", err);
+  }
+};
+
+startServer();
