@@ -2,12 +2,18 @@ const express = require("express");
 const mongoose = require("mongoose");
 const router = require("./routes/book-routes");
 const cors = require("cors");
+const bookRoutes = require("./routes/book-routes");
+const authRoutes = require("./routes/auth-routes");  // Add this line
+
 const app = express();
 
-// Middlewares
 app.use(express.json());
 app.use(cors());
-app.use("/books", router); // localhost:5000/books
+
+app.use("/books", bookRoutes);
+app.use("/auth", authRoutes);  // Add this line
+
+
 
 const startServer = async () => {
   try {
