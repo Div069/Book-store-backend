@@ -1,7 +1,9 @@
-// controllers/auth-controller.js
 const User = require("../model/User");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
+
+// Hardcoded JWT Secret (Replace with your secret key)
+const JWT_SECRET = "Mysecretkey";
 
 exports.signup = async (req, res) => {
   const { name, email, password } = req.body;
@@ -43,7 +45,7 @@ exports.login = async (req, res) => {
       return res.status(400).json({ message: "Invalid password" });
     }
 
-    const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, {
+    const token = jwt.sign({ id: user._id }, JWT_SECRET, {
       expiresIn: "1h",
     });
 
