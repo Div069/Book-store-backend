@@ -67,3 +67,23 @@ exports.getUser = async (req, res) => {
     res.status(500).json({ message: "Internal server error" });
   }
 };
+
+exports.getAllUsers = async (req, res) => {
+  try {
+    // Fetch all users, selecting only the username and email fields
+    const users = await User.find({}, 'username email');
+    res.status(200).json({ users });
+  } catch (err) {
+    res.status(500).json({ message: 'Fetching users failed', error: err.message });
+  }
+};
+
+exports.getAllUsers = async (req, res) => {
+  try {
+    // Fetch all users, selecting only the username and email fields
+    const users = await User.find({}, 'username email');
+    res.status(200).json({ users });
+  } catch (err) {
+    res.status(500).json({ message: 'Fetching users failed', error: err.message });
+  }
+};
