@@ -1,17 +1,22 @@
-// middleware/check-auth.js
 const jwt = require("jsonwebtoken");
 
-module.exports = (req, res, next) => {
-  const token = req.headers.authorization?.split(" ")[1];
-  if (!token) {
-    return res.status(401).json({ message: "No token provided" });
-  }
-
+const checkAuth = (req, res, next) => {
   try {
-    const decoded = jwt.verify(token, "your_jwt_secret");
-    req.user = decoded;
+    const token = req.headers.authorization.split(" ")[1]; // Expect "Bearer TOKEN"
+    if (!token) {
+      throw new Error("Authentication failed!token missing");
+    }
+    const decodedToken = jwt.verify(token, process.env.JWT_SECRET);
+    req.user = { email: decodedToken.email, id: decodedToken.userId };
+    console.log("User decoded from token:", req.user);
+    console.log("Token:", token);  // This should log the token
+    console.log("Decoded Token:", decodedToken);  // Add logging here
     next();
   } catch (err) {
-    return res.status(403).json({ message: "Invalid token" });
+    res.status(401).json({ message: "Authentication failed" });
   }
+ // This should log the decoded token data
+
 };
+
+module.exports = checkAuth;

@@ -21,13 +21,17 @@ const bookSchema = new Schema({
   },
   available: {
     type: Boolean,
+    default: true,
   },
   image: {
     type: String,
     required: true,
   },
+  ownerId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User',
+    default: null,  // Allow null for admin-owned books
+  }
 });
 
 module.exports = mongoose.model("Book", bookSchema);
-
-// books

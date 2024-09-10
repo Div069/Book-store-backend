@@ -1,14 +1,15 @@
 const express = require("express");
 const { signup, login, getUser, getAllUsers } = require("../controllers/auth-controller");
-const checkAuth = require("../controllers/middleware/check-auth");
+const checkAuth = require("../controllers/middleware/check-auth");  // Middleware to check authentication
 
 const router = express.Router();
 
+// Public routes
 router.post("/signup", signup);
 router.post("/login", login);
-router.get("/user", checkAuth, getUser);
 
-// New route to get all users (without authentication for now, you can add `checkAuth` if you want it to be protected)
-router.get("/users", getAllUsers); // Fetch all users (names and emails)
+// Protected routes
+router.get("/user", checkAuth, getUser);  // Protected route to get user info
+router.get("/users", checkAuth, getAllUsers);  // Protected route to get all users
 
 module.exports = router;
