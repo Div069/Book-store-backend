@@ -3,7 +3,7 @@ const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 
 // Get JWT secret from environment variable
-const JWT_SECRET = process.env.JWT_SECRET || "your_jwt_secret_key"; // Use env variable, fallback to default (for dev only)
+const JWT_SECRET = process.env.JWT_SECRET || "your_jwt_secret_key"; // Use env variable
 
 // Signup function
 exports.signup = async (req, res) => {

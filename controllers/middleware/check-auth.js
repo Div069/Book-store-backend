@@ -8,9 +8,9 @@ const checkAuth = (req, res, next) => {
     }
     const decodedToken = jwt.verify(token, process.env.JWT_SECRET);
     req.user = { email: decodedToken.email, id: decodedToken.userId };
-    console.log("User decoded from token:", req.user);
-    console.log("Token:", token);  // This should log the token
-    console.log("Decoded Token:", decodedToken);  // Add logging here
+    // console.log("User decoded from token:", req.user);
+    // console.log("Token:", token);  // This should log the token
+    // console.log("Decoded Token:", decodedToken);  // Add logging here
     next();
   } catch (err) {
     res.status(401).json({ message: "Authentication failed" });

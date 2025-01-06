@@ -5,7 +5,9 @@ const cors = require("cors");
 
 // Import routes
 const bookRoutes = require("./routes/book-routes");
-const authRoutes = require("./routes/auth-routes");  // Add authentication routes
+const authRoutes = require("./routes/auth-routes");
+const transactionRoutes = require("./routes/transaction-routes"); // Transaction routes
+const dashboardRoutes = require("./routes/dashboard-routes.js"); // Dashboard routes
 
 const app = express();
 
@@ -14,16 +16,19 @@ app.use(express.json());
 app.use(cors());
 
 // Routes
-app.use("/books", bookRoutes);  // Routes for books
-app.use("/auth", authRoutes);   // Routes for authentication and user management
+app.use("/books", bookRoutes); // Routes for books
+app.use("/auth", authRoutes); // Routes for authentication and user management
+app.use("/transactions", transactionRoutes); // Routes for transactions (borrow/return)
+app.use("/dashboard", dashboardRoutes); // Routes for dashboard (stats)
+
+
 
 // Connect to MongoDB and start server
 const startServer = async () => {
   try {
-    // Replace with your MongoDB connection string (or environment variable)
     await mongoose.connect(
       process.env.MONGODB_URI || "mongodb+srv://admin:DDoNj1ys9iGy0nS3@cluster.ttw1d.mongodb.net/?retryWrites=true&w=majority&appName=Cluster",
-      { useNewUrlParser: true, useUnifiedTopology: true }  // Ensure connection options are correct
+      { useNewUrlParser: true, useUnifiedTopology: true } // Ensure connection options are correct
     );
     console.log("Connected To Database");
 
