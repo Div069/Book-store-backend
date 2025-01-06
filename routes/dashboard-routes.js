@@ -5,7 +5,6 @@ const adminCheck = require("../controllers/middleware/admin-check");
 
 const router = express.Router();
 
-// Route for fetching library statistics
-router.get("/stats", checkAuth, getLibraryStats); // Available to all authenticated users
+router.get("/stats", checkAuth, getLibraryStats); 
 
 module.exports = router;

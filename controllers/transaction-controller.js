@@ -2,12 +2,12 @@ const Transaction = require("../model/Transaction");
 const Book = require("../model/Book");
 const User = require("../model/User");
 
-// Fetch all transactions (Admin only)
+
 exports.getAllTransactions = async (req, res) => {
   try {
     const transactions = await Transaction.find()
-      .populate("bookId", "name") // Include book name
-      .populate("userId", "name email"); // Include user name and email
+      .populate("bookId", "name") 
+      .populate("userId", "name email");
 
     res.status(200).json({ transactions });
   } catch (err) {
@@ -16,7 +16,6 @@ exports.getAllTransactions = async (req, res) => {
   }
 };
 
-// Borrow a book
 exports.borrowBook = async (req, res) => {
   const { bookId } = req.body;
 
@@ -26,12 +25,12 @@ exports.borrowBook = async (req, res) => {
       return res.status(400).json({ message: "Book is not available for borrowing." });
     }
 
-    book.ownerId = req.user.id; // Assign the book to the borrower
+    book.ownerId = req.user.id; 
     book.available = false;
 
     await book.save();
 
-    // Log the borrow transaction
+
     const transaction = new Transaction({
       bookId: book._id,
       userId: req.user.id,
@@ -46,7 +45,6 @@ exports.borrowBook = async (req, res) => {
   }
 };
 
-// Return a book
 exports.returnBook = async (req, res) => {
   const { transactionId } = req.params;
 
@@ -61,12 +59,12 @@ exports.returnBook = async (req, res) => {
       return res.status(404).json({ message: "Book not found." });
     }
 
-    book.ownerId = null; // Make the book available again
+    book.ownerId = null;
     book.available = true;
 
     await book.save();
 
-    // Update the transaction to mark the return
+
     transaction.action = "RETURN";
     transaction.timestamp = new Date();
     await transaction.save();

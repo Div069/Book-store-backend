@@ -2,7 +2,6 @@ const User = require("../model/User");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 
-// Get JWT secret from environment variable
 const JWT_SECRET = process.env.JWT_SECRET || "your_jwt_secret_key"; // Use env variable
 
 // Signup function
@@ -16,7 +15,6 @@ exports.signup = async (req, res) => {
       return res.status(400).json({ message: "A user with this email already exists." });
     }
 
-    // Hash the password
     const hashedPassword = await bcrypt.hash(password, 10);
 
     // Create the new user
@@ -39,7 +37,6 @@ exports.login = async (req, res) => {
   const { email, password } = req.body;
 
   try {
-    // Check if the user exists
     const user = await User.findOne({ email });
     if (!user) {
       return res.status(400).json({ message: "User not found. Please check your email or sign up." });
@@ -61,12 +58,10 @@ exports.login = async (req, res) => {
   }
 };
 
-// Get current user (protected route)
 exports.getUser = async (req, res) => {
   const userId = req.user.id;
 
   try {
-    // Find the user by ID and exclude the password field
     const user = await User.findById(userId).select("-password");
     if (!user) {
       return res.status(404).json({ message: "User not found." });
@@ -78,7 +73,6 @@ exports.getUser = async (req, res) => {
   }
 };
 
-// Get all users (for the Members page)
 
 exports.getAllUsers = async (req, res) => {
   try {

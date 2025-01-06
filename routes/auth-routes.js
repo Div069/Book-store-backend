@@ -4,12 +4,10 @@ const checkAuth = require("../controllers/middleware/check-auth");  // Middlewar
 
 const router = express.Router();
 
-// Public routes
 router.post("/signup", signup);
 router.post("/login", login);
 
-// Protected routes
-router.get("/user", checkAuth, getUser);  // Protected route to get user info
-router.get("/users", checkAuth, getAllUsers);  // Protected route to get all users
+router.get("/user", checkAuth, getUser);  
+router.get("/users", checkAuth, getAllUsers);  
 
 module.exports = router;

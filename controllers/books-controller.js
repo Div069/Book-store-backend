@@ -115,7 +115,6 @@ const deleteBook = async (req, res) => {
 
       await book.save();
 
-      // Log the delete transaction for non-admin user
       const transaction = new Transaction({
         bookId: bookId,
         userId: req.user.id,
@@ -133,7 +132,6 @@ const deleteBook = async (req, res) => {
   }
 };
 
-// Update book details (Owner of the book can update)
 const addOrUpdateBook = async (req, res) => {
   const { name, author, description, price, image } = req.body;
 
