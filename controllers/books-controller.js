@@ -1,51 +1,40 @@
 const Book = require("../model/Book");
 const User = require("../model/User");
-const Transaction = require("../model/Transaction"); // Import the Transaction model
+const Transaction = require("../model/Transaction");
 
-// Fetch all books or fetch books for a specific user
-const getAllBooks = async (req, res, next) => {
-  let books;
-  try {
-    books = await Book.find().populate("ownerId", "username email");
-  } catch (err) {
-    console.log("Error fetching books:", err);
-    return res.status(500).json({ message: "Fetching books failed" });
-  }
-  if (!books) {
-    return res.status(404).json({ message: "No books found" });
-  }
-  return res.status(200).json({ books });
+const clients = []; // Active SSE connections
+
+// SSE Endpoint for Notifications
+const sseNotifications = (req, res) => {
+  res.setHeader("Content-Type", "text/event-stream");
+  res.setHeader("Cache-Control", "no-cache");
+  res.setHeader("Connection", "keep-alive");
+
+  clients.push(res);
+
+  req.on("close", () => {
+    const index = clients.indexOf(res);
+    if (index !== -1) {
+      clients.splice(index, 1); // Remove the client when the connection is closed
+    }
+  });
 };
 
-// Add a book and log the transaction
-const addBook = async (req, res) => {
-  const { name, author, description, price, image } = req.body;
+// Function to notify connected clients
+const notifyClients = (message) => {
+  clients.forEach((client) => {
+    client.write(`data: ${JSON.stringify({ message })}\n\n`);
+  });
+};
 
+// Fetch all books
+const getAllBooks = async (req, res) => {
   try {
-    const newBook = new Book({
-      name,
-      author,
-      description,
-      price,
-      available: true, // Default to available
-      image,
-      ownerId: req.user.id, // Set the logged-in user as the owner
-    });
-
-    await newBook.save();
-
-    // Log the add transaction
-    const transaction = new Transaction({
-      bookId: newBook._id,
-      userId: req.user.id,
-      action: "ADD",
-    });
-    await transaction.save();
-
-    res.status(201).json({ book: newBook });
+    const books = await Book.find().populate("ownerId", "username email");
+    res.status(200).json({ books });
   } catch (err) {
-    console.error("Error adding book:", err);
-    res.status(500).json({ message: "Error adding the book." });
+    console.error("Error fetching books:", err);
+    res.status(500).json({ message: "Fetching books failed" });
   }
 };
 
@@ -73,6 +62,9 @@ const requestBookAccess = async (req, res) => {
       });
       await transaction.save();
 
+      // Notify connected clients
+      notifyClients(`Book requested successfully: ${book.name}`);
+
       res.status(200).json({ message: "Book successfully requested.", book });
     } else {
       res.status(400).json({ message: "Book is already unavailable." });
@@ -83,6 +75,8 @@ const requestBookAccess = async (req, res) => {
   }
 };
 
+
+// Delete a book and log the transaction
 // Delete a book and log the transaction
 const deleteBook = async (req, res) => {
   const { bookId } = req.params;
@@ -107,6 +101,7 @@ const deleteBook = async (req, res) => {
       });
       await transaction.save();
 
+      notifyClients(`Book deleted by admin: ${book.name}`);
       res.status(200).json({ message: "Book deleted from the database successfully." });
     } else if (book.ownerId && book.ownerId.toString() === req.user.id) {
       // Non-admin can only remove the book from their collection
@@ -122,6 +117,9 @@ const deleteBook = async (req, res) => {
       });
       await transaction.save();
 
+      // Notify connected clients
+      notifyClients(`Book removed from your collection: ${book.name}`);
+
       res.status(200).json({ message: "Book removed from your inventory and made available." });
     } else {
       res.status(403).json({ message: "You are not authorized to delete this book." });
@@ -132,13 +130,18 @@ const deleteBook = async (req, res) => {
   }
 };
 
+
+
+// Add or update a book
 const addOrUpdateBook = async (req, res) => {
   const { name, author, description, price, image } = req.body;
 
   try {
+    // Check if the book exists
     let book = await Book.findOne({ name });
 
     if (book) {
+      // If the book exists, update its details
       const isAdmin = req.user.email === "admin@example.com";
       if (isAdmin || book.ownerId.toString() === req.user.id) {
         book.author = author;
@@ -147,13 +150,18 @@ const addOrUpdateBook = async (req, res) => {
         book.image = image;
 
         await book.save();
+
+        // Notify clients about the update
+        notifyClients(`Book updated successfully: ${book.name}`);
+
         return res.status(200).json({ message: "Book updated successfully.", book });
       } else {
         return res.status(403).json({ message: "You are not authorized to update this book." });
       }
     }
 
-    book = new Book({
+    // If the book does not exist, create a new book
+    const newBook = new Book({
       name,
       author,
       description,
@@ -163,13 +171,26 @@ const addOrUpdateBook = async (req, res) => {
       ownerId: req.user.id,
     });
 
-    await book.save();
-    return res.status(201).json({ message: "Book added successfully.", book });
+    await newBook.save();
+
+    // Log the add transaction
+    const transaction = new Transaction({
+      bookId: newBook._id,
+      userId: req.user.id,
+      action: "ADD",
+    });
+    await transaction.save();
+
+    // Notify clients about the addition
+    notifyClients(`Book added successfully: ${newBook.name}`);
+
+    return res.status(201).json({ message: "Book added successfully.", book: newBook });
   } catch (err) {
     console.error("Error adding or updating book:", err);
     res.status(500).json({ message: "Error adding or updating the book." });
   }
 };
+
 
 const getUserBooks = async (req, res, next) => {
   const userId = req.user.id;
@@ -192,8 +213,9 @@ const getUserBooks = async (req, res, next) => {
 module.exports = {
   getAllBooks,
   getUserBooks,
-  addBook,
   requestBookAccess,
   deleteBook,
   addOrUpdateBook,
+  sseNotifications,
+  notifyClients,
 };
